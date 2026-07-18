@@ -1,26 +1,41 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  /* Colors */
+  --background: #FFFFFE;
   --foreground: #171717;
+  --brand: #406AFF;
+  --black-brand: #121826;
+  --gray-brand: #CED6E1;
+  --gray-brand-alt: #364153;
+  --purple-brand: #9D6CEE;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-brand: var(--brand);
+  --color-black-brand: var(--black-brand);
+  --color-gray-brand-200: var(--gray-brand);
+  --color-gray-brand-600: var(--gray-brand-alt);
+  --color-purple-brand: var(--purple-brand);
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+} */
+
+@layer base {
+  body {
+    @apply bg-purple-brand;
+  }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .hero-bg {
+    @apply w-full max-h-100 bg-purple-brand bg-[url(/hero-background.svg)] bg-no-repeat bg-cover bg-bottom;
+  }
 }
