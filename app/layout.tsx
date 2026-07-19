@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sileo";
 
 const outfit = Outfit({
     subsets: ['latin']
@@ -24,7 +25,16 @@ export default function RootLayout({
             lang="en"
             className={`${outfit.className} h-full antialiased`}
         >
-            <body className="min-h-full flex flex-col">{children}</body>
+            <body className="min-h-full flex flex-col">
+                {children}
+                <Toaster 
+                    position="top-center"
+                    theme="light"
+                    options={{
+                        fill: "#171717"
+                    }}
+                />
+            </body>
         </html>
     );
 }
