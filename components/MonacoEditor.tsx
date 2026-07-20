@@ -136,7 +136,7 @@ const MonacoEditor = ({
             />
 
             {/* Editor action buttons */}
-            <div className="w-full mt-8 flex items-center justify-between">
+            <div className="w-full mt-8 flex items-center justify-between flex-wrap gap-4">
                 <div className="flex gap-4">
                     {/* Custom Select button for selecting editor programming language and theme */}
                     <Select
@@ -157,6 +157,7 @@ const MonacoEditor = ({
                         <Button
                             variant="ghost"
                             size="xs"
+                            className={editorTheme === "light" ? "text-gray-brand-600" : "text-gray-brand-200"}
                             onClick={handleCopyLink}
                         >
                             {isCopied ? <Check /> : <Link />}
