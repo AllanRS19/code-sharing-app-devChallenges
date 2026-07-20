@@ -30,12 +30,12 @@
 
 @layer base {
   body {
-    @apply bg-purple-brand;
+    @apply bg-white;
   }
 }
 
 @layer components {
   .hero-bg {
-    @apply w-full max-h-100 bg-purple-brand bg-[url(/hero-background.svg)] bg-no-repeat bg-cover bg-bottom;
+    @apply w-full max-h-100 bg-[url(/hero-background.svg)] bg-no-repeat bg-cover bg-bottom;
   }
 }

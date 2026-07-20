@@ -10,6 +10,8 @@ const buttonVariants = cva(
                     "bg-brand text-white hover:opacity-80",
                 secondary:
                     "bg-gray-brand-200 text-gray-brand-600 hover:opacity-80",
+                ghost:
+                    "bg-transparent text-gray-brand-200"
             },
             size: {
                 default: "h-9 px-4 py-2 has-[>svg]:px-3",
