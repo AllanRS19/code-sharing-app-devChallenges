@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sileo";
+import { Analytics } from "@vercel/analytics/next";
 
 const outfit = Outfit({
     subsets: ['latin']
@@ -34,6 +35,7 @@ export default function RootLayout({
                         fill: "#171717"
                     }}
                 />
+                <Analytics />
             </body>
         </html>
     );
