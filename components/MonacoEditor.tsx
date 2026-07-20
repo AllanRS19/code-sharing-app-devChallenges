@@ -3,47 +3,76 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { sileo } from "sileo";
-import { Share2 } from "lucide-react";
+import { Check, Link, Share2 } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
-import { cn } from "@/lib/utils";
+import { cn, getTruncatedLink } from "@/lib/utils";
+import { shareSnippet } from "@/lib/actions/snippets";
 import { defaultEditorSnippet, monacoEditorLanguagesOptions, MonacoEditorLanguageValue } from "@/constants";
 import { Button } from "./ui/button";
 import { Select } from "./ui/select";
-import { shareSnippet } from "@/lib/actions/snippets";
 
 const editorThemeOptions = ['Light', 'Dark'] as const;
 
-const MonacoEditor = () => {
+type SavedSnapshot = {
+    code: string;
+    language: MonacoEditorLanguageValue;
+    theme: 'light' | 'vs-dark';
+};
+
+type MonacoEditorProps = {
+    initialCode?: string;
+    initialLanguage?: MonacoEditorLanguageValue;
+    initialTheme?: 'light' | 'vs-dark';
+    snippetId?: string // Present when loaded from an existing share link
+}
+
+const MonacoEditor = ({
+    initialCode,
+    initialLanguage = 'html',
+    initialTheme = 'light',
+    snippetId: initialSnippetId
+}: MonacoEditorProps) => {
 
     const router = useRouter();
 
-    const [editorLanguage, setEditorLanguage] = useState<MonacoEditorLanguageValue>('html');
-    const [editorTheme, setEditorTheme] = useState<'light' | 'vs-dark'>('light');
-    const [editorValue, setEditorValue] = useState(defaultEditorSnippet ?? '');
-    const [canShare, setCanShare] = useState(true);
+    const [editorLanguage, setEditorLanguage] = useState<MonacoEditorLanguageValue>(initialLanguage);
+    const [editorTheme, setEditorTheme] = useState<'light' | 'vs-dark'>(initialTheme);
+    const [editorValue, setEditorValue] = useState(initialCode ?? defaultEditorSnippet ?? '');
+
+    const [snippetId, setSnippetId] = useState<string | undefined>(initialSnippetId);
+    const [isCopied, setIsCopied] = useState(false);
+
     const [isPending, startTransition] = useTransition();
 
-    const markDirty = () => {
-        setCanShare(true);
-    }
+    const [savedSnapshot, setSavedSnapshot] = useState<SavedSnapshot | undefined>(
+        initialSnippetId
+            ? { code: initialCode ?? '', language: initialLanguage, theme: initialTheme }
+            : undefined
+    );
+
+    // Derived, not stored: true only when current content differs from the saved snapshot.
+    const isDirty =
+        !savedSnapshot ||
+        savedSnapshot.code !== editorValue ||
+        savedSnapshot.language !== editorLanguage ||
+        savedSnapshot.theme !== editorTheme;
+
+    const canShare = isDirty;
 
     const handleEditorChange = (value: string | undefined) => {
         setEditorValue(value ?? '');
-        markDirty();
     }
 
     const handleLanguageChange = (value: MonacoEditorLanguageValue) => {
         setEditorLanguage(value);
-        markDirty();
     }
 
     const handleThemeChange = (value: 'light' | 'vs-dark') => {
         setEditorTheme(value);
-        markDirty();
     }
 
     const handleShare = () => {
-        if (!editorValue || editorValue === "" || !canShare) return;
+        if (!editorValue || !canShare) return;
 
         startTransition(async () => {
             const result = await shareSnippet({
@@ -60,19 +89,30 @@ const MonacoEditor = () => {
                 return;
             }
 
-            // For now, just disable Share on success.
-            // Once /:snippetId exists, this is where you'd navigate there
-            // and/or show a "copy link" button using result.snippetId.
             sileo.success({
                 title: 'Snippet saved successfully',
                 description: "You'll be redirected to the snippets unique page in a couple of seconds. Please do not refresh"
             });
-            setCanShare(false);
+
+            setSnippetId(result.snippetId);
+            setSavedSnapshot({
+                code: editorValue,
+                language: editorLanguage,
+                theme: editorTheme
+            });
 
             setTimeout(() => {
-                router.push(`/snippets/${result.snippetId}`);
+                router.push(`/${result.snippetId}`);
             }, 2500);
         });
+    }
+
+    const handleCopyLink = async () => {
+        if (!snippetId) return;
+        const link = `${window.location.origin}/${snippetId}`;
+        await navigator.clipboard.writeText(link);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
     }
 
     const monacoEditorOptions = {
@@ -112,15 +152,27 @@ const MonacoEditor = () => {
                     />
                 </div>
 
-                {/* TODO: Implement link sharing logic */}
-                <Button
-                    size="lg"
-                    disabled={!editorValue || !canShare || isPending}
-                    onClick={handleShare}
-                >
-                    <Share2 />
-                    {isPending ? "Saving snippet..." : "Share"}
-                </Button>
+                <div className="flex items-center gap-3">
+                    {snippetId && !isDirty && (
+                        <Button
+                            variant="ghost"
+                            size="xs"
+                            onClick={handleCopyLink}
+                        >
+                            {isCopied ? <Check /> : <Link />}
+                            {isCopied ? "Copied!" : getTruncatedLink(snippetId)}
+                        </Button>
+                    )}
+
+                    <Button
+                        size="lg"
+                        disabled={!editorValue || !isDirty || isPending}
+                        onClick={handleShare}
+                    >
+                        <Share2 />
+                        {isPending ? "Sharing..." : "Share"}
+                    </Button>
+                </div>
             </div>
         </section>
     )
